@@ -1,0 +1,82 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+    <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+</head>
+<body>
+
+    <p>Count numbers: <output id="result"></output></p>
+    <button id="btnStartNoWorker">Start counting - NO WORKER</button>
+    <button id="btnStart">Start counting with Worker</button>
+    <button id="btnStop" style="display:none;">Stop Worker</button>
+    <button id="btnStopNoWorker" style="display:none;">Stop</button>
+    <br><br>
+
+    <div id="myDiv"></div>
+
+    <script type="text/javascript">
+
+        $(function () {
+            $("#btnStart").click(startWorker);
+            $("#btnStartNoWorker").click(function () {
+                countingForNoWorker(0); //initiate counting starting from 0
+                $("#btnStopNoWorker").css("display", "block");
+                $("#btnStop").css("display", "none");
+            });
+            $("#btnStop").click(stopWorker);
+            $("#btnStopNoWorker").click(function () {
+                clearTimeout(myTimeout);
+                hideStopButtons();
+            });
+        });
+
+         
+
+        
+        function countingForNoWorker(i) {
+            i++;
+            $("#myDiv").prepend(i + "<br />");
+            myTimeout = setTimeout("countingForNoWorker("+ i +")", 500);
+        }
+
+        var myTimeout;
+        var myWorker;
+
+        
+        function stopWorker() {
+            if (typeof (myWorker) !== "undefined") {
+                myWorker.terminate(); //kill the running worker
+                myWorker = undefined;
+                hideStopButtons();
+            }
+        }
+
+        function hideStopButtons() {
+            $("#btnStopNoWorker").css("display", "none");
+            $("#btnStop").css("display", "none");
+        }
+
+        function startWorker() {
+            if (typeof (Worker) !== "undefined") //check if Worker type is available in browser
+            { 
+                if (typeof (myWorker) == "undefined") //check if myWorker instance already exists
+                {
+                    myWorker = new Worker("worker.js"); //if no - create a new one - passing a js filename containing our worker's code to constructor
+                    $("#btnStop").css("display", "block");
+                }
+                myWorker.onmessage = function (event) {
+                        $("#myDiv").prepend(event.data + "<br />");
+                };
+            }
+            else { //worker type is not available in browser
+                $("#myDiv").html("Your browser does not support WebWorkers!");
+            }
+            $("#btnStopNoWorker").css("display", "none");
+            $("#btnStop").css("display", "block");
+            
+        }
+    </script>
+
+</body>
+</html>
